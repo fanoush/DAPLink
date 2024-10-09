@@ -45,9 +45,34 @@ void gpio_init(void)
     gpio_cfg_output(GPIO_REG(LED_MSC), GPIO_IDX(LED_MSC));
     gpio_cfg_output(GPIO_REG(LED_CDC), GPIO_IDX(LED_CDC));
 #ifdef PIN_nRESET
-    gpio_cfg_output(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET));
+    gpio_set(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET));
+    gpio_cfg(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0D1, NRF_GPIO_PIN_NOSENSE); // Standard '0', disconnect '1'
+    gpio_set(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET));
 #endif
+#ifdef RESET_BUTTON
     gpio_cfg_input(GPIO_REG(RESET_BUTTON), GPIO_IDX(RESET_BUTTON), RESET_BUTTON_PULL);
+#endif
+#if defined(PIN_POWER)
+    gpio_clear(GPIO_REG(PIN_POWER), GPIO_IDX(PIN_POWER));
+    gpio_cfg(GPIO_REG(PIN_POWER), GPIO_IDX(PIN_POWER),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+    gpio_clear(GPIO_REG(PIN_POWER), GPIO_IDX(PIN_POWER));
+#endif
+#if defined(UART_TX_PIN)
+    gpio_set(GPIO_REG(UART_TX_PIN), GPIO_IDX(UART_TX_PIN));
+    gpio_cfg(GPIO_REG(UART_TX_PIN), GPIO_IDX(UART_TX_PIN),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+    gpio_set(GPIO_REG(UART_TX_PIN), GPIO_IDX(UART_TX_PIN));
+#endif
+#if defined(UART_RX_PIN)
+    gpio_cfg(GPIO_REG(UART_RX_PIN), GPIO_IDX(UART_RX_PIN),
+        NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT,
+        NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+#endif
 }
 
 void gpio_set_hid_led(gpio_led_state_t state)
@@ -72,9 +97,19 @@ uint8_t gpio_get_reset_btn_no_fwrd(void)
 
 uint8_t gpio_get_reset_btn_fwrd(void)
 {
+#ifdef RESET_BUTTON
     return gpio_read(GPIO_REG(RESET_BUTTON), GPIO_IDX(RESET_BUTTON)) ? 0 : 1;
+#else
+    return 0;
+#endif
 }
 
 void gpio_set_board_power(bool powerEnabled)
 {
+#if defined(PIN_POWER)
+if (powerEnabled)
+    gpio_set(GPIO_REG(PIN_POWER), GPIO_IDX(PIN_POWER));
+else
+    gpio_clear(GPIO_REG(PIN_POWER), GPIO_IDX(PIN_POWER));
+#endif
 }

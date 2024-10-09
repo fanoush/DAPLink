@@ -614,6 +614,11 @@ projects:
         - records/board/nrf52840_if.yaml
         - records/board/nrf52840_xiao.yaml
         - records/family/all_family.yaml
+    nrf52840_promicro_if:
+        - *module_if
+        - *module_hic_nrf52840
+        - records/board/nrf52840_promicro.yaml
+        - records/family/all_family.yaml
     nrf5340_thingy91_if:
         - *module_if
         - *module_hic_nrf5340

@@ -19,6 +19,39 @@
 #ifndef DAPLINK_ADDR_H
 #define DAPLINK_ADDR_H
 
+#if defined(NRF52840_PROMICRO)
+/*
+ NRF52840_PROMICRO uses Nordic MBR + adafruit uf2 bootloader for nice!nano + optional SoftDevice 
+ so DAPLINK_ROM_BL_SIZE is defined to cover MBR or MBR + SoftDevice
+*/
+
+/* Device sizes */
+
+#define DAPLINK_ROM_START               0x00000000
+#define DAPLINK_ROM_SIZE                0x00040000 // 256 KiB
+
+#define DAPLINK_ROM_CONFIG_USER_START   0x0003F000
+#define DAPLINK_ROM_CONFIG_USER_SIZE    0x00001000
+
+#define DAPLINK_ROM_BL_START            DAPLINK_ROM_START // 0x00000000
+#ifndef DAPLINK_ROM_BL_SIZE
+#define DAPLINK_ROM_BL_SIZE             0x00001000 // our bootloader is 4 KiB Nordic MBR
+#endif
+
+#define DAPLINK_ROM_IF_START            (DAPLINK_ROM_BL_START + DAPLINK_ROM_BL_SIZE) //0x00001000
+#define DAPLINK_ROM_IF_SIZE             (DAPLINK_ROM_CONFIG_USER_START - DAPLINK_ROM_IF_START) // 0x0003e000
+
+
+/* RAM sizes */
+
+#define DAPLINK_RAM_START               (0x20000008) // 8 bytes is reserved for MBR and SoftDevice
+#define DAPLINK_RAM_SIZE                (0x00010000-8) // 64 KiB
+
+#define DAPLINK_RAM_APP_START           DAPLINK_RAM_START
+#define DAPLINK_RAM_APP_SIZE            (DAPLINK_RAM_SIZE - DAPLINK_RAM_SHARED_SIZE)//0x0000FEF8
+
+#else
+
 /* Device sizes */
 
 #define DAPLINK_ROM_START               0x00000000
@@ -43,6 +76,8 @@
 
 #define DAPLINK_RAM_APP_START           0x20000000
 #define DAPLINK_RAM_APP_SIZE            0x0000FF00
+
+#endif
 
 #define DAPLINK_RAM_SHARED_START        0x2000FF00
 #define DAPLINK_RAM_SHARED_SIZE         0x00000100

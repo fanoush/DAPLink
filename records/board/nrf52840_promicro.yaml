@@ -1,0 +1,9 @@
+common:
+    macros:
+        - USB_PROD_STR="nRF52840 ProMicro CMSIS-DAP"
+        - CDC_ACM_DEFAULT_BAUDRATE=115200
+        - NRF52840_PROMICRO
+        # for no softdevice, only MBR
+        - DAPLINK_ROM_BL_SIZE=0x00001000
+        # for S140 6.1.1 as per https://devzone.nordicsemi.com/guides/short-range-guides/b/getting-started/posts/adjustment-of-ram-and-flash-memory
+        #- DAPLINK_ROM_BL_SIZE=0x00026000

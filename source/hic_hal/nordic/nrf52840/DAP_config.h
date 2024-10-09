@@ -70,7 +70,7 @@ This information includes:
 
 /// Indicate that JTAG communication mode is available at the Debug Port.
 /// This information is returned by the command \ref DAP_Info as part of <b>Capabilities</b>.
-#define DAP_JTAG                0               ///< JTAG Mode: 1 = available, 0 = not available.
+#define DAP_JTAG                1               ///< JTAG Mode: 1 = available, 0 = not available.
 
 /// Configure maximum number of JTAG devices on the scan chain connected to the Debug Access Port.
 /// This setting impacts the RAM requirements of the Debug Unit. Valid range is 1 .. 255.
@@ -190,7 +190,37 @@ Configures the DAP Hardware I/O pins for JTAG mode:
  - TDO to input mode.
 */
 __STATIC_INLINE void PORT_JTAG_SETUP (void) {
-  ;
+#if DAP_JTAG == 1
+  gpio_cfg(GPIO_REG(PIN_SWCLK), GPIO_IDX(PIN_SWCLK),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+  gpio_set(GPIO_REG(PIN_SWCLK), GPIO_IDX(PIN_SWCLK));
+  gpio_cfg(GPIO_REG(PIN_SWDIO), GPIO_IDX(PIN_SWDIO),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_CONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+  gpio_set(GPIO_REG(PIN_SWDIO), GPIO_IDX(PIN_SWDIO));
+  gpio_cfg(GPIO_REG(PIN_TDI), GPIO_IDX(PIN_TDI),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+  gpio_set(GPIO_REG(PIN_TDI), GPIO_IDX(PIN_TDI));
+  gpio_cfg(GPIO_REG(PIN_TDO), GPIO_IDX(PIN_TDO),
+             NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+#ifdef PIN_nTRST
+    gpio_set(GPIO_REG(PIN_nTRST), GPIO_IDX(PIN_nTRST));
+    gpio_cfg(GPIO_REG(PIN_nTRST), GPIO_IDX(PIN_nTRST),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0D1, NRF_GPIO_PIN_NOSENSE); // Standard '0', disconnect '1'
+    gpio_set(GPIO_REG(PIN_nTRST), GPIO_IDX(PIN_nTRST));
+#endif
+#ifdef PIN_nRESET
+    gpio_set(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET));
+    gpio_cfg(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0D1, NRF_GPIO_PIN_NOSENSE); // Standard '0', disconnect '1'
+    gpio_set(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET));
+#endif
+#endif
 }
 
 
@@ -215,6 +245,13 @@ __STATIC_INLINE void PORT_SWD_SETUP (void) {
              NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_CONNECT,
              NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
   gpio_set(GPIO_REG(PIN_SWDIO), GPIO_IDX(PIN_SWDIO));
+#ifdef PIN_nRESET
+    gpio_set(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET));
+    gpio_cfg(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET),
+             NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0D1, NRF_GPIO_PIN_NOSENSE); // Standard '0', disconnect '1'
+    gpio_set(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET));
+#endif
 }
 
 /** Disable JTAG/SWD I/O Pins.
@@ -228,6 +265,24 @@ __STATIC_INLINE void PORT_OFF (void) {
   gpio_cfg(GPIO_REG(PIN_SWCLK), GPIO_IDX(PIN_SWCLK),
              NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
              NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+#ifdef PIN_nRESET
+  gpio_cfg(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET),
+             NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+#endif
+#ifdef PIN_nTRST
+  gpio_cfg(GPIO_REG(PIN_nTRST), GPIO_IDX(PIN_nTRST),
+             NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+#endif
+#if DAP_JTAG == 1
+  gpio_cfg(GPIO_REG(PIN_TDI), GPIO_IDX(PIN_TDI),
+             NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+  gpio_cfg(GPIO_REG(PIN_TDO), GPIO_IDX(PIN_TDO),
+             NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+             NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+#endif
 }
 
 
@@ -321,14 +376,24 @@ __STATIC_FORCEINLINE void     PIN_SWDIO_OUT_DISABLE (void) {
 \return Current status of the TDI DAP hardware I/O pin.
 */
 __STATIC_FORCEINLINE uint32_t PIN_TDI_IN  (void) {
-  return (0U);
+#if DAP_JTAG == 1
+  return gpio_out_read(GPIO_REG(PIN_TDI), GPIO_IDX(PIN_TDI));
+#else
+  return (0U); // Not available
+#endif
 }
 
 /** TDI I/O pin: Set Output.
 \param bit Output value for the TDI DAP hardware I/O pin.
 */
 __STATIC_FORCEINLINE void     PIN_TDI_OUT (uint32_t bit) {
-  ;
+#if DAP_JTAG == 1
+  if (bit & 0x1) {
+    gpio_set(GPIO_REG(PIN_TDI), GPIO_IDX(PIN_TDI));
+  } else {
+    gpio_clear(GPIO_REG(PIN_TDI), GPIO_IDX(PIN_TDI));
+  }
+#endif
 }
 
 
@@ -338,7 +403,11 @@ __STATIC_FORCEINLINE void     PIN_TDI_OUT (uint32_t bit) {
 \return Current status of the TDO DAP hardware I/O pin.
 */
 __STATIC_FORCEINLINE uint32_t PIN_TDO_IN  (void) {
-  return (0U);
+#if DAP_JTAG == 1
+  return gpio_read(GPIO_REG(PIN_TDO), GPIO_IDX(PIN_TDO));
+#else
+  return (0U); // Not available
+#endif
 }
 
 
@@ -348,7 +417,11 @@ __STATIC_FORCEINLINE uint32_t PIN_TDO_IN  (void) {
 \return Current status of the nTRST DAP hardware I/O pin.
 */
 __STATIC_FORCEINLINE uint32_t PIN_nTRST_IN   (void) {
-  return (0U);
+#ifdef PIN_nTRST
+  return gpio_out_read(GPIO_REG(PIN_nTRST), GPIO_IDX(PIN_nTRST));
+#else
+  return (0U); // Not available
+#endif
 }
 
 /** nTRST I/O pin: Set Output.
@@ -357,7 +430,13 @@ __STATIC_FORCEINLINE uint32_t PIN_nTRST_IN   (void) {
            - 1: release JTAG TRST Test Reset.
 */
 __STATIC_FORCEINLINE void     PIN_nTRST_OUT  (uint32_t bit) {
-  ;
+#ifdef PIN_nTRST
+  if (bit & 0x1) {
+    gpio_set(GPIO_REG(PIN_nTRST), GPIO_IDX(PIN_nTRST));
+  } else {
+    gpio_clear(GPIO_REG(PIN_nTRST), GPIO_IDX(PIN_nTRST));
+  }
+#endif
 }
 
 // nRESET Pin I/O------------------------------------------
@@ -366,7 +445,11 @@ __STATIC_FORCEINLINE void     PIN_nTRST_OUT  (uint32_t bit) {
 \return Current status of the nRESET DAP hardware I/O pin.
 */
 __STATIC_FORCEINLINE uint32_t PIN_nRESET_IN  (void) {
+#ifdef PIN_nRESET
+  return gpio_out_read(GPIO_REG(PIN_nRESET), GPIO_IDX(PIN_nRESET));
+#else
   return (0U);
+#endif
 }
 
 /** nRESET I/O pin: Set Output.

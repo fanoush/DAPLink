@@ -77,6 +77,42 @@ COMPILER_ASSERT(DAPLINK_HIC_ID == DAPLINK_HIC_ID_NRF52840);
 #define I2C_SCL_PIN       NRF_GPIO_PIN_MAP(0, 5)  // I2C SCL
 #define I2C_SDA_PIN       NRF_GPIO_PIN_MAP(0, 4)  // I2C SDA
 
+#elif defined(NRF52840_PROMICRO)
+
+/*
+Pro Micro pins - GPIO row on one side used for uart + swd/jtag
+
+ |B+|RAW|GND|RST|VCC|031|029|  002|  115|113|111| 010|  009
+ |--|---|GND|---|VCC|TXD|RXD|SWCLK|SWDIO|TDI|TDO|TRST|RESET
+
+power pin P0.13 turns VCC on - can be used for powering target board with 3.3V
+*/
+
+#define GPIO_LED_ACTIVE_STATE 0
+#define RESET_BUTTON_PULL NRF_GPIO_PIN_PULLUP
+
+#define PIN_SWCLK         NRF_GPIO_PIN_MAP(0, 2)  // SWDCLK (Output)
+#define PIN_SWDIO         NRF_GPIO_PIN_MAP(1, 15) // SWDIO (Input/Output)
+#define PIN_TDI           NRF_GPIO_PIN_MAP(1, 13) // JTAG TDI (Output)
+#define PIN_TDO           NRF_GPIO_PIN_MAP(1, 11) // JTAG TDO (Input)
+#define PIN_nTRST         NRF_GPIO_PIN_MAP(0, 10) // JTAG nTRST (Output Open Drain)
+#define PIN_nRESET        NRF_GPIO_PIN_MAP(0, 9)  // nRESET (Output Open Drain)
+
+#undef LED_RUNNING                                // Target Running LED (Output)
+#undef LED_CONNECTED                              // Connected LED (Output)
+#define LED_HID           NRF_GPIO_PIN_MAP(0, 15) // HID LED
+#define LED_MSC           NRF_GPIO_PIN_MAP(0, 15) // MSC LED
+#define LED_CDC           NRF_GPIO_PIN_MAP(0, 15) // CDC LED
+#undef LED_PWR                                    // POWER LED
+#define PIN_POWER	NRF_GPIO_PIN_MAP(0, 13)
+#undef RESET_BUTTON
+#define UART_TX_PIN       NRF_GPIO_PIN_MAP(0, 31)  // UART From IMCU to target
+#define UART_RX_PIN       NRF_GPIO_PIN_MAP(0, 29)  // UART From target to IMCU
+#undef I2C_SCL_PIN
+#undef I2C_SDA_PIN
+//#define I2C_SCL_PIN       NRF_GPIO_PIN_MAP(0, 29) // I2C SCL
+//#define I2C_SDA_PIN       NRF_GPIO_PIN_MAP(0, 28) // I2C SDA
+
 #else
 
 // Default PIN assignment (not finalized based on nRF52833)
