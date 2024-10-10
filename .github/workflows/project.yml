@@ -1,0 +1,62 @@
+name: Build single project.yaml project
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'daplink project name from projects.yaml'
+        required: true
+        default: 'stm32f103xb_if'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        gcc: ['10.3-2021.10']
+
+    steps:
+    - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+      uses: carlosperate/arm-none-eabi-gcc-action@v1
+      with:
+        release: ${{ matrix.gcc }}
+        path-env-var: ARM_NONE_EABI_GCC_PATH
+
+    - name: Cache Python modules
+      id: cache-python
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Checkout source files
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Install Python module
+      run:  |
+        pip3 install --user -r requirements.txt
+
+    - name: Install dependencies
+      run:  |
+        sudo apt install -y ninja-build
+        export PATH="$ARM_NONE_EABI_GCC_PATH:/home/runner/.local/bin:$PATH"
+        arm-none-eabi-gcc -v | tee log.txt
+        (git status; git log -1)>> log.txt
+
+    - name: Compile
+      run:  |
+        export PATH="$ARM_NONE_EABI_GCC_PATH:/home/runner/.local/bin:$PATH"
+        python tools/progen_compile.py ${{ github.event.inputs.project}}
+        mkdir firmware
+        cp projectfiles/make_gcc_arm/*/build/*.{bin,hex} firmware/
+
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: firmware-${{github.run_number}}
+        path: |
+          firmware*/*
+          !firmware*/*.zip
